@@ -1,0 +1,77 @@
+module vars_mod
+  integer, allocatable :: a(:,:)
+  integer, allocatable :: b(:,:)
+  integer, allocatable :: c(:,:)
+
+end module vars_mod
+
+module kernel_mod
+contains
+subroutine kernel(n,a,b,c)
+implicit none
+
+integer, intent(in) :: n
+integer, intent(in) :: a(n),b(n)
+integer, intent(out) :: c(n)
+integer :: i
+!$acc routine vector
+!$acc data present(a,b,c)
+
+
+!$acc loop vector
+do i=1,n
+   c(i) = a(i) + b(i)
+enddo
+
+!$acc end data
+end subroutine kernel
+end module kernel_mod
+
+program main
+use vars_mod
+use kernel_mod, only: kernel
+implicit none
+
+integer :: i,j
+integer :: n,m
+
+n = 32
+m = 128
+
+allocate(a(n,m))
+allocate(b(n,m))
+allocate(c(n,m))
+
+c = 0.
+do j=1,m
+  do i=1,n
+    a(i,j) = i + j
+    b(i,j) = 2*a(i,j)
+  enddo
+enddo
+
+!$acc enter data create(c)
+!$acc enter data copyin(a,b)
+
+!$acc parallel loop gang
+do j=1,m 
+   call kernel(n, a(:,j), b(:,j), c(:,j))
+enddo
+
+!$acc exit data delete(a,b)
+!$acc exit data copyout(c)
+
+do j=1,m
+  do i=1,n
+    if(c(i,j) /= (a(i,j) + b(i,j)))then
+       print *, i, j, c(i,j), a(i,j), b(i,j)
+       error stop
+    endif
+  enddo
+enddo
+
+deallocate(a)
+deallocate(b)
+deallocate(c)
+
+end program main

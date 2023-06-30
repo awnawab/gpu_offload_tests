@@ -1,0 +1,67 @@
+#define n 32
+#define m 128
+
+module vars_mod
+  integer :: a(n,m)
+  integer :: b(n,m)
+  integer :: c(n,m)
+
+end module vars_mod
+
+module kernel_mod
+contains
+subroutine kernel(a,b,c)
+implicit none
+
+integer, intent(in) :: a(n),b(n)
+integer, intent(out) :: c(n)
+integer :: i
+!$acc routine vector
+!$acc data present(a,b,c)
+
+
+!$acc loop vector
+do i=1,n
+   c(i) = a(i) + b(i)
+enddo
+
+!$acc end data
+end subroutine kernel
+end module kernel_mod
+
+program main
+use vars_mod
+use kernel_mod, only: kernel
+implicit none
+
+integer :: i,j
+
+c = 0
+do j=1,m
+  do i=1,n
+    a(i,j) = i + j
+    b(i,j) = 2*a(i,j)
+  enddo
+enddo
+
+!$acc enter data create(c)
+!$acc enter data copyin(a,b)
+
+!$acc parallel loop gang
+do j=1,m 
+   call kernel(a(:,j), b(:,j), c(:,j))
+enddo
+
+!$acc exit data delete(a,b)
+!$acc exit data copyout(c)
+
+do j=1,m
+  do i=1,n
+    if(c(i,j) /= (a(i,j) + b(i,j)))then
+       print *, i, j, c(i,j), a(i,j), b(i,j)
+       error stop
+    endif
+  enddo
+enddo
+
+end program main
