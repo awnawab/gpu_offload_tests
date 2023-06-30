@@ -1,2 +1,2 @@
 add_subdirectory(arguments)
-#add_subdirectory(globalvars)
+add_subdirectory(globalvars)
