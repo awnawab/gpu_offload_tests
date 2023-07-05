@@ -14,3 +14,19 @@ foreach(TEST_FILE ${TEST_FILES})
     target_link_libraries(openacc_${TEST_NAME}_globalvar.x OpenACC::OpenACC_Fortran)
     add_test(NAME openacc_${TEST_NAME}_globalvar COMMAND openacc_${TEST_NAME}_globalvar.x)
 endforeach()
+
+#if( DEEPCOPY )
+#   set(TEST_FILES_DEEPCOPY
+#       derived_type_allocatable_deepcopy.F90
+#       derived_type_nested_allocatable_deepcopy.F90
+#   )
+#
+#   foreach(TEST_FILE ${TEST_FILES_DEEPCOPY})
+#       get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
+#       set(CMAKE_Fortran_MODULE_DIRECTORY CMAKE_BINARY_DIR/module/openacc_${TEST_NAME}_globalvar)
+#       add_executable(openacc_${TEST_NAME}_globalvar.x ${TEST_FILE})
+#       target_link_libraries(openacc_${TEST_NAME}_globalvar.x OpenACC::OpenACC_Fortran)
+#       target_compile_options(openacc_${TEST_NAME}_globalvar.x PRIVATE "-gpu=deepcopy")
+#       add_test(NAME openacc_${TEST_NAME}_globalvar COMMAND openacc_${TEST_NAME}_globalvar.x)
+#   endforeach()
+#endif()
