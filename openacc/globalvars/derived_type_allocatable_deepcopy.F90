@@ -7,15 +7,6 @@
 
 #define m 128
 
-module vars_mod
-  type :: container
-     integer, allocatable :: x(:)
-  end type container
-  type(container) :: a(m), b(m), c(m)
-
-!$acc declare create(a,b,c)
-end module vars_mod
-
 module kernel_mod
 contains
 subroutine kernel(j,n)
@@ -54,14 +45,15 @@ do j=1,m
    enddo
 enddo
 
-!$acc update device(a,b,c)
+!$acc enter data copyin(a,b,c)
 
 !$acc parallel loop gang
 do j=1,m
   call kernel(j,n)
 enddo
 
-!$acc update self(c)
+!$acc exit data copyout(c)
+!$acc exit data delete(a,b)
 
 do j=1,m
   do i=1,n

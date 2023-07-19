@@ -5,23 +5,10 @@
 ! granted to it by virtue of its status as an intergovernmental organisation
 ! nor does it submit to any jurisdiction.
 
-module vars_mod
-  type :: container
-     integer, allocatable :: x(:)
-  end type container
-
-  type :: bucket
-     type(container), allocatable :: a(:), b(:), c(:)
-  end type bucket
-
-  type(bucket) :: v
-!$acc declare create(v)
-end module vars_mod
-
 module kernel_mod
 contains
 subroutine kernel(j,n)
-use vars_mod, only: v
+use vars_mod_nested, only: v
 implicit none
 
 integer, intent(in) :: j,n
@@ -39,7 +26,7 @@ end subroutine kernel
 end module kernel_mod
 
 program main
-use vars_mod, only: v
+use vars_mod_nested, only: v
 use kernel_mod, only: kernel
 implicit none
 integer :: i,j,n,m
@@ -61,14 +48,14 @@ do j=1,m
    enddo
 enddo
 
-!$acc update device(v)
+!$acc enter data copyin(v)
 
 !$acc parallel loop gang
 do j=1,m
   call kernel(j,n)
 enddo
 
-!$acc update self(v)
+!$acc exit data copyout(v)
 
 do j=1,m
   do i=1,n
