@@ -5,7 +5,7 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.20.2)
 project(gpu_offload_tests VERSION 1.0 LANGUAGES Fortran)
 
 include(CTest)
